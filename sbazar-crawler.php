@@ -25,6 +25,8 @@
  * @todo Zlepšit kód (včetně komentářů)
  */
 
+namespace sbazar_crawler;
+
 // Cesta ke zdrojovým souborům
 defined( 'SC_PATH' ) || define( 'SC_PATH', dirname( __FILE__ ) . '/' );
 
@@ -32,7 +34,7 @@ defined( 'SC_PATH' ) || define( 'SC_PATH', dirname( __FILE__ ) . '/' );
 defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 
 // Ostatní zdrojáky
-include_once( SC_PATH . 'inc/functions.php' );
+require_once( SC_PATH . 'inc/functions.php' );
 
 /**
  * TRUE pokud chceme spustit CRON úlohu pro stažení dat z SBazaru a přípravy nového RSS souboru.
@@ -56,33 +58,26 @@ $admin_pass = filter_input( INPUT_GET, 'admin' );
 if( $is_admin === true && $admin_pass != SC_ADMIN_PASS ) {
     // Vyžádána administrace, ale se špatným heslem
     header( 'Content-Type: text/html;charset=UTF-8 ' );
-    sc_include_tpl( SC_PATH . 'partials/admin-wrong_pass.phtml', [], true );
+    include_tpl( SC_PATH . 'partials/admin-wrong_pass.phtml', [], true );
     exit();
 }
-if( $is_admin === true/* && $admin_pass == SC_ADMIN_PASS*/ ) {
+if( $is_admin === true ) {
+    // Administrace
+    // Zpracujeme formulář
+    process_admin_form();
     // Připravíme si parametry pro šablonu
-    $params = [
-        'category'   => null,
-        'price_from' => null,
-        'price_to'   => null,
-        'town'       => null,
-        'sort'       => null,
-    ];
-    // Otestujeme jestli formulář byl odeslán
-    if( strtolower( filter_input( INPUT_SERVER, 'method' ) ) !== 'post' ) {
-        $params['category']   = filter_input( INPUT_POST, 'sc_category' );
-        $params['price_from'] = filter_input( INPUT_POST, 'sc_price_from' );
-        $params['price_to']   = filter_input( INPUT_POST, 'sc_price_to' );
-        $params['town']       = filter_input( INPUT_POST, 'sc_town' );
-        $params['sort']       = filter_input( INPUT_POST, 'sc_sort' );
-    }
+    $params = get_crawler_config();
+    
     // Zobrazíme adminstraci
     header( 'Content-Type: text/html;charset=UTF-8 ' );
-    sc_include_tpl( SC_PATH . 'partials/admin.phtml', $params, true );
+    include_tpl( SC_PATH . 'partials/admin.phtml', $params, true );
     exit();
 }
 elseif( $is_cron_job === true ) {
     // Spustíme parsování Sbazaru pro nový RSS
+    
+    echo 'CRON job should be executed!'.PHP_EOL;
+    
     // ...
     exit();
 }
@@ -111,4 +106,3 @@ else {
 </rss>
 <?php
 }
-
