@@ -11,6 +11,21 @@
     <head>
         <meta charset="utf-8">
         <title>Administrace crawlera pro Sbazar</title>
+        <style type="text/css">
+html { margin:0; padding:0; font-family:"HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color:#222; -webkit-user-select:none; -ms-user-select:none; -moz-user-select:none; user-select:none; }
+body { margin:0; padding:0; background:0 0; }
+a { outline:0; text-decoration:none; }
+h1 { font-size:3.2em; line-height:1.25; margin-top:2em; margin-bottom:1em; font-weight:300; text-align:center; }
+code { font-size:105%; }
+.wrap { margin:0; padding:0; width:100%; }
+.page { margin:0 10em 0 10em; padding:0; width:auto; }
+.page p { text-align:center; }
+.form-row { padding:.2em 0; }
+.form-row--submit_buttons { padding-top:1em; }
+form #sc-price_form, form #sc-price_to, form #sc-town { width:80px; }
+form label { display:inline-block; width:100px; }
+form label[for="sc-price_to"] { width:auto; }
+        </style>
     </head>
     <body class="sc sc-admin">
         <div class="wrap">
@@ -18,26 +33,29 @@
                 <h1>Administrace crawlera pro Sbazar.cz</h1>
             </div>
             <div class="page">
-                <p>Podle polí formuláře níže bude vygenerována URL na Sbazar, ze které se pak vygeneruje RSS soubor s inzeráty. Aktuálně použitá URL je <code><?php echo $current_url ?></code>.</p>
+                    Podle polí formuláře níže bude vygenerována URL na Sbazar, 
+                    ze které se pak vygeneruje RSS soubor s inzeráty.<br>
+                    Aktuálně použitá URL je <code><?php echo $current_url ?></code>.
+                </p>
                 <form class="form" method="POST">
                     <div class="form-row">
                         <label for="sc-category">Kategorie:</label>
                         <select id="sc-category" name="sc_category" value="<?php echo $category ?>">
-                            <option value=""<?php empty( $category ) ? ' selected' : '' ?>>Žádná</option>
+                            <option value=""<?php echo empty( $category ) ? ' selected' : '' ?>>Žádná</option>
                             <?php foreach( \sbazar_crawler\get_categories() as $cat => $cat_url ) : ?>
-                            <option value="<?php echo $cat_url ?>"<?php ( $cat_url === $category ) ? ' selected' : '' ?>><?php echo $cat ?></option>
+                            <option value="<?php echo $cat_url ?>"<?php echo ( $cat_url == $category ) ? ' selected' : '' ?>><?php echo $cat ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
                     <div class="form-row">
                         <label for="sc-price_from">Cena od:</label>
-                        <input id="sc-price_form" name="sc_price_form" type="number">
-                        <label for="sc-price_from"> do: </label>
-                        <input id="sc-price_to" name="sc_price_to" type="number">
+                        <input id="sc-price_form" name="sc_price_form" type="number" min="0" disabled>
+                        <label for="sc-price_to"> do: </label>
+                        <input id="sc-price_to" name="sc_price_to" type="number" min="1" disabled>
                     </div>
                     <div class="form-row">
                         <label for="sc-town">PSČ:</label>
-                        <input id="sc-town" name="sc_town" type="text" value="<?php echo $town ?>" style="width: 80px;">
+                        <input id="sc-town" name="sc_town" type="text" value="<?php echo $town ?>" disabled>
                     </div>
                     <div class="form-row form-row--submit_buttons">
                         <input name="sc_submit" type="submit" value="Uložit">
