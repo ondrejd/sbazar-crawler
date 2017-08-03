@@ -75,10 +75,18 @@ if( $is_admin === true ) {
 }
 elseif( $is_cron_job === true ) {
     // Spustíme parsování Sbazaru pro nový RSS
-    
-    echo 'CRON job should be executed!'.PHP_EOL;
-    
-    // ...
+    header( 'Content-Type: text/plain;charset=UTF-8 ' );
+
+    echo 'CRON job is executed!' . PHP_EOL;
+
+    // Inicializujeme parser
+    $parser = new AdsParser();
+    // A začneme parsovat HTML
+    $parser->parse();
+    // Nakonec musíme vše uložit jako nový RSS feed
+    set_rss_feed( $parser->getAds() );
+
+    echo 'CRON job is finished!';
     exit();
 }
 else {
