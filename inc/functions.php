@@ -234,7 +234,7 @@ XML;
 </rss>
 XML;
     // ...
-    //file_put_contents( SC_PATH . 'feed.rss', $rss );
+    file_put_contents( SC_PATH . 'feed.rss', $rss );
 }
 
 
@@ -350,9 +350,12 @@ class Ad {
 /**
  * Samotný parser inzerátů z HTML stránek.
  */
-class AdsParser {
+class Crawler {
     /** @var array $ads */
     protected $ads = [];
+
+    /** @var string $config */
+    protected $base_url;
 
     /** @var string $url */
     protected $url;
@@ -361,90 +364,133 @@ class AdsParser {
     protected $doc;
 
     /**
-     * ...
+     * Aktuální stránka, která se parsuje.
+     * @param integer $page
+     */
+    protected $page = 1;
+
+    /**
+     * Konstruktor.
+     * @param array $config
      * @return void
      */
-    public function __construct() {
+    public function __construct( $config ) {
         // Z aktuální URL získáme HTML
-        $this->url = get_crawler_config()['current_url'];
+        $this->base_url = $config['base_url'];
+        $this->url = $config['current_url'];
     }
 
     /**
      * Vrátí získané reklamy.
      * @return array
      */
-    public function getAds() {
+    public function get_ads() {
         return $this->ads;
     }
 
     /**
-     * ...
+     * Vrátí HTML pro parsovanou stránku jako čistý string.
+     * @return string
+     */
+    protected function get_html() {
+        $url = $this->url;
+        if( $this->page > 1 ) {
+            $url .= str_pad( $url, 1, '/', STR_PAD_RIGHT ) . $this->page;
+        }
+
+        return file_get_contents( $url );
+    }
+
+    /**
+     * Vrátí TRUE pokud existuje další stránka pro parsování.
+     * @return boolean
+     */
+    protected function has_next_page() {
+        $anchor = $this->doc->getElementById( 'nextMrEggsLoader' );
+
+        return ( $anchor instanceof \DOMElement );
+    }
+
+    /**
+     * Započne s parsováním reklam z cílové URL.
      * @return void
      */
     public function parse() {
-        // ...
-$html = file_get_contents( $this->url );
-// A vytvoříme z toho DOM dokument
-$this->doc = new \DOMDocument();
-$this->doc->loadHTML( $html, LIBXML_NOWARNING | LIBXML_ERR_NONE );
+        $html = $this->get_html();
+        // A vytvoříme z toho DOM dokument
+        $this->doc = new \DOMDocument();
+        $this->doc->loadHTML( $html, LIBXML_NOWARNING | LIBXML_ERR_NONE );
 
-// Najdeme div obsahující všechny inzeráty
-$div = $this->doc->getElementById( 'mrEggsResults' );
-$first = $div->getElementsByTagName( 'div' )->item( 0 );
+        // Najdeme div obsahující všechny inzeráty
+        $div = $this->doc->getElementById( 'mrEggsResults' );
+        $first = $div->getElementsByTagName( 'div' )->item( 0 );
+        $ads = $first->getElementsByTagName( 'div' );
 
-echo '<pre>';
-//var_dump( $first );
-//echo $first->ownerDocument->saveHTML( $first );
-//exit();
+        // A projdeme je jeden po druhým
+        for( $i = 0; $i < $ads->length; $i++ ) {
+            $ad_div = $ads->item( $i );
+            if( ! $ad_div->hasAttribute( 'id' ) || ! $ad_div->hasAttribute( 'data-dot-data' ) ) {
+                continue;
+            }
 
-$ads = $first->getElementsByTagName( 'div' );
+            $ad_obj = $this->parse_ad( $ad_div );
+            if( ( $ad_obj instanceof Ad )) {
+                $this->ads[] = $ad_obj;
+            }
+        }
 
-// A projdeme je jeden po druhým
-for( $i = 0; $i < $ads->length; $i++ ) {
-    $ad_div = $ads->item( $i );
-    if( ! $ad_div->hasAttribute( 'id' ) || ! $ad_div->hasAttribute( 'data-dot-data' ) ) {
-        continue;
-    }
-
-    $id = $ad_div->getAttribute( 'id' );
-    if( strpos( $id, 'inz-' ) !== 0 ) {
-        continue;
-    }
-
-    $data = json_decode( $ad_div->getAttribute( 'data-dot-data' ));
-    if( ! is_object( $data ) ) {
-        continue;
-    }
-
-    $title = '';
-    $spans = $ad_div->getElementsByTagName( 'span' );
-    foreach( $spans as $span ) {
-        if( $span->hasAttribute( 'class' ) && strstr( $div->getAttribute( 'class' ), 'descText' ) ) {
-            $title = $span->textContent;
+        if( $this->has_next_page() ) {
+            $this->page++;
+            $this->parse();
         }
     }
 
-    //if( empty( $title ) ) {
-    //    continue;
-    //}
+    /**
+     * Parsuje jeden div s inzeratem.
+     * @param \DOMElement $ad_div
+     * @return \sbazar_crawler\Ad|null
+     * @todo Pokud bude třeba obrázek tak viz. {link https://cyber.harvard.edu/rss/rss.html#ltenclosuregtSubelementOfLtitemgt}
+     */
+    protected function parse_ad( \DOMElement $ad_div ) {
+        $id = $ad_div->getAttribute( 'id' );
+        if( strpos( $id, 'inz-' ) !== 0 ) {
+            return;
+        }
 
-    $ad_obj = new Ad();
-    $ad_obj->setId( $id );
-    $ad_obj->setCategory( $data->categoryId );
-    $ad_obj->setPrice( $data->price );
-    $ad_obj->setTitle( $title );
-    //$ad_obj->setLink( $link );
-    //$ad_obj->setGuid( $guid );
+        $data = json_decode( $ad_div->getAttribute( 'data-dot-data' ));
+        if( ! is_object( $data ) ) {
+            return;
+        }
 
-var_dump($ad_obj);
+        $title = '';
+        $spans = $ad_div->getElementsByTagName( 'span' );
 
-}
-exit();
-//echo $this->url . PHP_EOL;
-//var_dump( $div );
+        foreach( $spans as $span ) {
+            if( $span->hasAttribute( 'class' ) && strstr( $span->getAttribute( 'class' ), 'title' ) ) {
+                // Pozn. kdyby jsme hledali třídu "descText", tak máme celý popis
+                $title = trim( $span->textContent );
+            }
+        }
 
-// ...
-exit();
-        // ...
+        if( empty( $title ) ) {
+            return;
+        }
+
+        $anchors = $ad_div->getElementsByTagName( 'a' );
+        if( $anchors->length != 1 ) {
+            return;
+        }
+
+        $link = $anchors->item( 0 )->getAttribute( 'href' );
+
+        $ad_obj = new Ad();
+        $ad_obj->setId( $id );
+        $ad_obj->setCategory( $data->categoryId );
+        $ad_obj->setPrice( $data->price );
+        $ad_obj->setTitle( $title );
+        $ad_obj->setLink( $link );
+        //$ad_obj->setGuid( $guid );
+
+        return $ad_obj;
     }
 }

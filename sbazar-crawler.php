@@ -36,6 +36,9 @@ defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 // Ostatní zdrojáky
 require_once( SC_PATH . 'inc/functions.php' );
 
+// Musíme taky zvýšit časový limit
+ini_set( 'max_execution_time', 600 ); // 600 s = 10 min.
+
 /**
  * TRUE pokud chceme spustit CRON úlohu pro stažení dat z SBazaru a přípravy nového RSS souboru.
  * @var boolean $is_cron_job
@@ -80,12 +83,13 @@ elseif( $is_cron_job === true ) {
     echo 'CRON job is executed!' . PHP_EOL;
 
     // Inicializujeme parser
-    $parser = new AdsParser();
+    $parser = new Crawler( get_crawler_config() );
     // A začneme parsovat HTML
     $parser->parse();
     // Nakonec musíme vše uložit jako nový RSS feed
-    set_rss_feed( $parser->getAds() );
+    //set_rss_feed( $parser->get_ads() );
 
+var_dump( $parser->get_ads() );
     echo 'CRON job is finished!';
     exit();
 }
