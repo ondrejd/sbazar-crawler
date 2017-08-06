@@ -70,6 +70,14 @@ if( $is_admin === true ) {
     process_admin_form();
     // Připravíme si parametry pro šablonu
     $params = get_crawler_config();
+
+    // Nevím proč, ale po uložení konfiguračního souboru, dochází k chybě,
+    // že není vráceno pole, ale boolean, toto je řešení:
+    if( ! is_array( $params ) ) {
+        $protocol = ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) ? 'https://' : 'http://';
+        $self_url = $protocol .  $_SERVER['HTTP_HOST'] . '/' . basename( __FILE__ ) . '?admin=' . SC_ADMIN_PASS;
+        header( "Location: {$self_url}" );
+    }
     
     // Zobrazíme adminstraci
     header( 'Content-Type: text/html;charset=UTF-8 ' );
