@@ -33,11 +33,20 @@ defined( 'SC_PATH' ) || define( 'SC_PATH', dirname( __FILE__ ) . '/' );
 // Aktuálně platné heslo do administrace
 defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 
+// Maximulní doba pro zpuštění (600 s = 10 min)
+defined( 'SC_MAX_EXEC_TIME' ) || define( 'SC_MAX_EXEC_TIME', 600 );
+
+// Maximální počet stránek Sbazaru na parsování (spíše pro vývoj)
+defined( 'SC_MAX_PAGES_TO_PARSE' ) || define( 'SC_MAX_PAGES_TO_PARSE', 3 );
+
+// Vytvářet soubor s chybama při parsování HTML?
+defined( 'SC_ENABLE_PARSER_LOG' ) || define( 'SC_ENABLE_PARSER_LOG', false );
+
 // Ostatní zdrojáky
 require_once( SC_PATH . 'inc/functions.php' );
 
 // Musíme taky zvýšit časový limit
-ini_set( 'max_execution_time', 600 ); // 600 s = 10 min.
+ini_set( 'max_execution_time', SC_MAX_EXEC_TIME );
 
 /**
  * TRUE pokud chceme spustit CRON úlohu pro stažení dat z SBazaru a přípravy nového RSS souboru.
@@ -95,9 +104,8 @@ elseif( $is_cron_job === true ) {
     // A začneme parsovat HTML
     $parser->parse();
     // Nakonec musíme vše uložit jako nový RSS feed
-    //set_rss_feed( $parser->get_ads() );
+    set_rss_feed( $parser->get_ads() );
 
-var_dump( $parser->get_ads() );
     echo 'CRON job is finished!';
     exit();
 }

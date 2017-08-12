@@ -239,6 +239,42 @@ XML;
 
 
 /**
+ * Pomocný objekt pro zachytávání chyb při parsování HTML.
+ * @link https://stackoverflow.com/questions/1148928/disable-warnings-when-loading-non-well-formed-html-by-domdocument-php
+ */
+class ParserError {
+    protected $callback;
+    protected $errors;
+    function __construct( $callback ) {
+        $this->callback = $callback;
+    }
+    function call() {
+        $result = null;
+        set_error_handler( [$this, 'onError'] );
+
+        try {
+            $result = call_user_func( $this->callback, func_get_arg( 0 ) );
+        } catch (Exception $ex) {
+            restore_error_handler();        
+            //throw $ex;
+        }
+
+        restore_error_handler();
+        return $result;
+    }
+    function onError( $errno, $errstr, $errfile, $errline ) {
+        $this->errors[] = [$errno, $errstr, $errfile, $errline];
+    }
+    function ok() {
+        return count( $this->errors ) <= 0;
+    }
+    function errors() {
+        return $this->errors;
+    }
+}
+
+
+/**
  * Pomocný objekt představující jeden inzerát vytvořenou parserem.
  */
 class Ad {
@@ -418,8 +454,18 @@ class Crawler {
     public function parse() {
         $html = $this->get_html();
         // A vytvoříme z toho DOM dokument
-        $this->doc = new \DOMDocument();
-        $this->doc->loadHTML( $html, LIBXML_NOWARNING | LIBXML_ERR_NONE );
+        //$this->doc = new \DOMDocument();
+        //$this->doc->loadHTML( $html, LIBXML_NOWARNING | LIBXML_ERR_NONE );
+        $this->doc = new \DomDocument();
+        // Chceme zamezit zbytečným PHP warningům při špatném HTML
+        $caller = new ParserError( [$this->doc, 'loadHTML'] );
+        $caller->call( $html );
+        if ( ! $caller->ok() && SC_ENABLE_PARSER_LOG === true ) {
+            ob_start();
+            var_dump( $caller->errors() );
+            $out = ob_get_clean();
+            file_put_contents( SC_PATH . 'last.log', $out );
+        }
 
         // Najdeme div obsahující všechny inzeráty
         $div = $this->doc->getElementById( 'mrEggsResults' );
@@ -439,7 +485,7 @@ class Crawler {
             }
         }
 
-        if( $this->has_next_page() ) {
+        if( $this->has_next_page() && $this->page < SC_MAX_PAGES_TO_PARSE ) {
             $this->page++;
             $this->parse();
         }
