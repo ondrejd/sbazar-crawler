@@ -168,20 +168,6 @@ function process_admin_form() {
 
 
 /**
- * Vytiskne RSS soubor s inzeráty.
- * @param boolean $exit (Optional.)
- * @return void
- */
-function get_rss_feed( $exit = true ) {
-    // ...
-
-    if( $exit === true) {
-        exit();
-    }
-}
-
-
-/**
  * Vrátí parametry pro RSS kanál.
  * @return array
  */
