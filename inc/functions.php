@@ -164,7 +164,7 @@ function process_admin_form() {
     $channel    = filter_input( INPUT_POST, 'sc_channel', FILTER_DEFAULT , FILTER_REQUIRE_ARRAY );
 
     // Zajistíme ať jsou data konzistentní
-    $params = array_merge( get_crawler_config(), [
+    $params = [
         'category'   => empty( $category ) ? null : $category,
         'price_from' => empty( $price_from ) ? null : $price_from,
         'price_to'   => empty( $price_to ) ? null : $price_to,
@@ -174,8 +174,8 @@ function process_admin_form() {
             'title'       => empty( $channel['title'] ) ? '' : htmlentities( $channel['title'] ),
             'link'        => empty( $channel['link'] ) ? '' : $channel['link'],
             'description' => empty( $channel['description'] ) ? '' : htmlentities( $channel['description'] ),
-        ]
-    ] );
+        ],
+    ];
 
     // Uložíme parametry crawleru
     set_crawler_config( $params );
