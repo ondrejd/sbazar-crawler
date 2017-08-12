@@ -114,9 +114,7 @@ elseif( $is_cron_job === true ) {
 }
 else {
     // Zobrazíme RSS ostatním návštěvníkům
-    //header( 'Content-Type: application/xml; charset=utf-8' );
     header( 'Content-Type: application/rss+xml; charset=utf-8' );
-    echo '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
 
     // Pokud RSS soubor existuje vypíšeme ho a konec
     if( file_exists( SC_RSS_FILE ) && is_readable( SC_RSS_FILE ) ) {

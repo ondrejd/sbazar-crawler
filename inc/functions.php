@@ -186,11 +186,12 @@ function get_rss_feed( $exit = true ) {
  * @return array
  */
 function get_channel_params() {
-    $channel = [
-        'title' => '',
-        'link' => '',
-        'description' => '',
+    $params = [
+        'title' => 'Feed',
+        'link' => 'http://localhost:7777/sbazar-crawler.php',
+        'description' => 'Popisek feedu.',
     ];
+    return $params;
 }
 
 
@@ -200,11 +201,10 @@ function get_channel_params() {
  */
 function get_rss_feed_desc() {
     $channel = get_channel_params();
-
     return '' .
             '<title>' . $channel['title'] . '</title>' . PHP_EOL .
             '<link>' . $channel['link'] . '</link>' . PHP_EOL .
-            '<description>' . $channel['description'] . '</description>' . PHP_EOL;
+            '<description>' . $channel['description'] . '</description>';
 }
 
 
@@ -221,21 +221,23 @@ function set_rss_feed( array $ads = [] ) {
      */
     $rss = '';
     $rss .= <<<XML
-<?xml version="1.0" encoding="UTF-8">
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
     <channel>
 {$feed_head}
 XML;
 
     foreach( $ads as $ad) {
+//<pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
+        $desc = $ad->getTitle() . ' - ' . $ad->getPrice();
         $item = <<<XML
+
         <item>
-            <title>název inzerátu</title>
-            <link>http://odkaz na detail inzerátu</link>
-            <guid isPermaLink="true">http://www.d...</guid>
-            <description><![CDATA[<img class="center" src="http://www.....cz/images/.jpg" alt=ta."/>jedna dvířka odšroubovaná, ale určitě se dají opravit a přidělat rozměry, cca 160 cm, š 120cm, h 37cm Simona, Brno, Jihomoravský ]]></description>
-            <category> / Nábytek</category>
-            <pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
+            <title>{$ad->getTitle()}</title>
+            <description>{$desc}</description>
+            <link>{$ad->getLink()}</link>
+            <guid isPermaLink="true">{$ad->getLink()}</guid>
+            <category>{$ad->getCategory()}</category>
         </item>
 XML;
         $rss .= $item;
@@ -539,7 +541,7 @@ class Crawler {
             return;
         }
 
-        $link = $anchors->item( 0 )->getAttribute( 'href' );
+        $link = 'https://www.sbazar.cz' . $anchors->item( 0 )->getAttribute( 'href' );
 
         $ad_obj = new Ad();
         $ad_obj->setId( $id );
