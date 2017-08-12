@@ -15,12 +15,12 @@
 html { margin:0; padding:0; font-family:"HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color:#222; -webkit-user-select:none; -ms-user-select:none; -moz-user-select:none; user-select:none; }
 body { margin:0; padding:0; background:0 0; }
 a { outline:0; text-decoration:none; }
-h1 { font-size:3.2em; line-height:1.25; margin-top:2em; margin-bottom:1em; font-weight:300; text-align:center; }
+h1 { font-size:3.2em; line-height:1.45; margin-top:2em; margin-bottom:1em; font-weight:300; text-align:center; }
+h2 { font-size:1.85em; line-height:1.15; margin-top:1em; margin-bottom:0.5em; font-weight:200; }
 code { font-size:105%; }
 .wrap { margin:0; padding:0; width:100%; }
 .page { margin:0 10em 0 10em; padding:0; width:auto; }
-.page p { text-align:center; }
-.form-row { padding:.2em 0; }
+.form-row { clear:both; padding:.2em 0; width:100%; }
 .form-row--submit_buttons { padding-top:1em; }
 form #sc-price_form, form #sc-price_to, form #sc-town { width:80px; }
 form label { display:inline-block; width:100px; }
@@ -33,12 +33,10 @@ form label[for="sc-price_to"] { width:auto; }
                 <h1>Administrace crawlera pro Sbazar.cz</h1>
             </div>
             <div class="page">
-                    Podle polí formuláře níže bude vygenerována URL na Sbazar, 
-                    ze které se pak vygeneruje RSS soubor s inzeráty.<br>
-                    Aktuálně použitá URL je <code><?php echo $current_url ?></code>.<br>
-                    Po odeslání formuláře bude výsledný RSS soubor znovu vygenerován.
-                </p>
+                <p>Po odeslání formuláře bude výsledný RSS soubor znovu vygenerován.</p>
                 <form class="form" method="POST">
+                    <h2>Parametry pro URL</h2>
+                    <p>Do formuláře níže zadajte parametry pro URL na Sbazar, aktuálně použitá URL je <code><?php echo $current_url ?></code>.</p>
                     <div class="form-row">
                         <label for="sc-category">Kategorie:</label>
                         <select id="sc-category" name="sc_category" value="<?php echo $category ?>">
@@ -57,6 +55,20 @@ form label[for="sc-price_to"] { width:auto; }
                     <div class="form-row">
                         <label for="sc-town">PSČ:</label>
                         <input id="sc-town" name="sc_town" type="text" value="<?php echo $town ?>" disabled>
+                    </div>
+                    <h2>Parametry pro feed</h2>
+                    <p>Do tohoto formuláře zadejte parametry použité pro popis celého výsledného feedu.</p>
+                    <div class="form-row">
+                        <label for="sc-channel-title">Název:</label>
+                        <input id="sc-channel-title" name="sc_channel['title']" type="text" value="<?php echo $channel['title'] ?>">
+                    </div>
+                    <div class="form-row">
+                        <label for="sc-channel-description">Popisek:</label>
+                        <input id="sc-channel-description" name="sc_channel['description']" type="text" value="<?php echo $channel['description'] ?>">
+                    </div>
+                    <div class="form-row">
+                        <label for="sc-channel-link">URL:</label>
+                        <input id="sc-channel-link" name="sc_channel['link']" type="url" value="<?php echo $channel['link'] ?>">
                     </div>
                     <div class="form-row form-row--submit_buttons">
                         <input name="sc_submit" type="submit" value="Uložit">

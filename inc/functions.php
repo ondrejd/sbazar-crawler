@@ -115,6 +115,11 @@ return [
     'town'        => %s,
     'sort'        => %s,
     'current_url' => %s,
+    'channel'     => [
+        'title'       => %s,
+        'link'        => %s,
+        'description' => %s,
+    ],
 ];
 PHP;
 
@@ -128,7 +133,10 @@ PHP;
             empty( $params['price_to'] ) ? 'null' : ( int ) $params['price_to'],
             empty( $params['town'] ) ? 'null' : '"' . $params['town'] . '"',
             empty( $params['sort'] ) ? 'null' : '"' . $params['sort'] . '"',
-            '"' . $current_url . '"'
+            '"' . $current_url . '"',
+            '"' . $params['channel']['title'] . '"',
+            '"' . $params['channel']['link'] . '"',
+            '"' . $params['channel']['description'] . '"'
     );
 
     file_put_contents( SC_PATH . 'sbazar-crawler.config.php', $php );
@@ -152,6 +160,8 @@ function process_admin_form() {
     $price_to   = filter_input( INPUT_POST, 'sc_price_to' );
     $town       = filter_input( INPUT_POST, 'sc_town' );
     $sort       = filter_input( INPUT_POST, 'sc_sort' );
+    /** @var array $channel Default parametrs for the output RSS channel. */
+    $channel    = filter_input( INPUT_POST, 'sc_channel', FILTER_DEFAULT , FILTER_REQUIRE_ARRAY );
 
     // Zajistíme ať jsou data konzistentní
     $params = array_merge( get_crawler_config(), [
@@ -160,6 +170,11 @@ function process_admin_form() {
         'price_to'   => empty( $price_to ) ? null : $price_to,
         'town'       => empty( $town ) ? null : $town,
         'sort'       => empty( $sort ) ? null : $sort,
+        'channel'    => [
+            'title'       => empty( $channel['title'] ) ? '' : htmlentities( $channel['title'] ),
+            'link'        => empty( $channel['link'] ) ? '' : $channel['link'],
+            'description' => empty( $channel['description'] ) ? '' : htmlentities( $channel['description'] ),
+        ]
     ] );
 
     // Uložíme parametry crawleru
@@ -172,12 +187,7 @@ function process_admin_form() {
  * @return array
  */
 function get_channel_params() {
-    $params = [
-        'title' => 'Feed',
-        'link' => 'http://localhost:7777/sbazar-crawler.php',
-        'description' => 'Popisek feedu.',
-    ];
-    return $params;
+    return get_crawler_config()['channel'];
 }
 
 
