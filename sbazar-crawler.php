@@ -30,6 +30,9 @@ namespace sbazar_crawler;
 // Cesta ke zdrojovým souborům
 defined( 'SC_PATH' ) || define( 'SC_PATH', dirname( __FILE__ ) . '/' );
 
+// Jméno výstupního souboru s feedem.
+defined( 'SC_RSS_FILE' ) || define( 'SC_RSS_FILE', SC_PATH . 'feed.rss' );
+
 // Aktuálně platné heslo do administrace
 defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 
@@ -111,25 +114,22 @@ elseif( $is_cron_job === true ) {
 }
 else {
     // Zobrazíme RSS ostatním návštěvníkům
-    //header('Content-Type: application/xml');
-    header('Content-Type: application/rss+xml; charset=utf-8');
+    //header( 'Content-Type: application/xml; charset=utf-8' );
+    header( 'Content-Type: application/rss+xml; charset=utf-8' );
     echo '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
+
+    // Pokud RSS soubor existuje vypíšeme ho a konec
+    if( file_exists( SC_RSS_FILE ) && is_readable( SC_RSS_FILE ) ) {
+        $rss = file_get_contents( SC_RSS_FILE );
+        echo $rss;
+        exit();
+    }
+
+    // Jinak vypíšeme prázdný feed
 ?>
-<!-- Example RSS feed -->
 <rss version="2.0">
     <channel>
-        <title>název feedu</title>
-        <description>Výpis inzerátů s Sbazaru</description>
-        <link>http://127.0.0.1:7777/</link>
-            <title>název inzerátu</title>
-            <link>http://odkaz na detail inzerátu</link>
-            <guid isPermaLink="true">http://www.test.cz/</guid>
-            <description><![CDATA[<img class="center" src="http://www.....cz/images/
-        .jpg" alt=ta."/>jedna dvířka odšroubovaná, ale určitě se dají opravit a přidělat
-        rozměry, cca 160 cm, š 120cm, h 37cm Simona, Brno, Jihomoravský ]]></description>
-            <category> / Nábytek</category>
-            <pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
-        </item>
+<?php echo get_rss_feed_desc() ?>
     </channel>
 </rss>
 <?php

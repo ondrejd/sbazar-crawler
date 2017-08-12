@@ -195,12 +195,26 @@ function get_channel_params() {
 
 
 /**
+ * Vrátí hlavičku k RSS feedu.
+ * @return string
+ */
+function get_rss_feed_desc() {
+    $channel = get_channel_params();
+
+    return '' .
+            '<title>' . $channel['title'] . '</title>' . PHP_EOL .
+            '<link>' . $channel['link'] . '</link>' . PHP_EOL .
+            '<description>' . $channel['description'] . '</description>' . PHP_EOL;
+}
+
+
+/**
  * Vytvoří RSS soubor s inzeráty.
  * @param array $ads Pole s inzeráty (objekty typu {@see Ad}).
  * @return void
  */
 function set_rss_feed( array $ads = [] ) {
-    $channel = get_channel_params();
+    $feed_head = get_rss_feed_desc();
 
     /**
      * @var string $rss Output RSS document (just plain text).
@@ -210,9 +224,7 @@ function set_rss_feed( array $ads = [] ) {
 <?xml version="1.0" encoding="UTF-8">
 <rss version="2.0">
     <channel>
-        <title>{$channel['title']}</title>
-        <link>{$channel['link']}</link>
-        <description>{$channel['description']}</description>
+{$feed_head}
 XML;
 
     foreach( $ads as $ad) {
@@ -233,8 +245,8 @@ XML;
     </channel>
 </rss>
 XML;
-    // ...
-    file_put_contents( SC_PATH . 'feed.rss', $rss );
+    // Zapíšeme do souboru
+    file_put_contents( SC_RSS_FILE, $rss );
 }
 
 
