@@ -63,6 +63,7 @@ function get_crawler_config() {
  * Vygeneruje nové Sbazar URL ze zadaných parametrů.
  * @param array $params
  * @return string
+ * @todo Dokončit použití ostatních hodnot!
  */
 function get_current_url( array $params ) {
     $current_url = str_pad( $params['base_url'], 1, '/', STR_PAD_RIGHT );
@@ -119,6 +120,7 @@ return [
         'title'       => %s,
         'link'        => %s,
         'description' => %s,
+        'language'    => 'cs',
     ],
 ];
 PHP;
@@ -174,6 +176,7 @@ function process_admin_form() {
             'title'       => empty( $channel['title'] ) ? '' : htmlentities( $channel['title'] ),
             'link'        => empty( $channel['link'] ) ? '' : $channel['link'],
             'description' => empty( $channel['description'] ) ? '' : htmlentities( $channel['description'] ),
+            'language'    => 'cs',
         ],
     ];
 
@@ -197,10 +200,17 @@ function get_channel_params() {
  */
 function get_rss_feed_desc() {
     $channel = get_channel_params();
-    return '' .
+    $head = '' .
             '<title>' . $channel['title'] . '</title>' . PHP_EOL .
-            '<link>' . $channel['link'] . '</link>' . PHP_EOL .
             '<description>' . $channel['description'] . '</description>';
+
+    if( ! empty( $channel['link'] ) ) {
+        $head .= '<link>' . $channel['link'] . '</link>' . PHP_EOL;
+    }
+
+    $head .= '<language>' . $channel['language'] . '</language>' . PHP_EOL;
+
+    return $head;
 }
 
 
@@ -253,12 +263,30 @@ XML;
  * @link https://stackoverflow.com/questions/1148928/disable-warnings-when-loading-non-well-formed-html-by-domdocument-php
  */
 class ParserError {
+    /**
+     * @var callable $callback
+     */
     protected $callback;
+
+    /**
+     * @var array $errors
+     */
     protected $errors;
+
+    /**
+     * Constructor.
+     * @param callable $callback
+     * @return void
+     */
     function __construct( $callback ) {
         $this->callback = $callback;
     }
-    function call() {
+
+    /**
+     * Call the watched callback.
+     * @return void
+     */
+    public function call() {
         $result = null;
         set_error_handler( [$this, 'onError'] );
 
@@ -272,13 +300,30 @@ class ParserError {
         restore_error_handler();
         return $result;
     }
-    function onError( $errno, $errstr, $errfile, $errline ) {
+
+    /**
+     * Called when error is occured.
+     * @param string $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param integer $errline
+     * @return void
+     */
+    public function onError( $errno, $errstr, $errfile, $errline ) {
         $this->errors[] = [$errno, $errstr, $errfile, $errline];
     }
-    function ok() {
+
+    /**
+     * @return boolean Returns TRUE if there were no errors.
+     */
+    public function ok() {
         return count( $this->errors ) <= 0;
     }
-    function errors() {
+
+    /**
+     * @return array Array with an errors.
+     */
+    public function errors() {
         return $this->errors;
     }
 }

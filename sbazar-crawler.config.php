@@ -22,5 +22,6 @@ return [
         'title'       => "Zkušební feed",
         'link'        => "http://localhost:7777/sbazar-crawler.php",
         'description' => "Popisek zkušebního feedu.",
+        'language'    => 'cs',
     ],
 ];
