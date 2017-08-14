@@ -60,15 +60,11 @@ form label[for="sc-price_to"] { width:auto; }
                     <p>Do tohoto formuláře zadejte parametry použité pro popis celého výsledného feedu. Nadpis a popisek jsou povinné, URL je nepovinné.</p>
                     <div class="form-row">
                         <label for="sc-channel-title">Název:</label>
-                        <input id="sc-channel-title" name="sc_channel['title']" type="text" value="<?php echo $channel['title'] ?>">
+                        <input id="sc-channel-title" name="sc_channel[title]" type="text" value="<?php echo $channel['title'] ?>">
                     </div>
                     <div class="form-row">
                         <label for="sc-channel-description">Popisek:</label>
-                        <input id="sc-channel-description" name="sc_channel['description']" type="text" value="<?php echo $channel['description'] ?>">
-                    </div>
-                    <div class="form-row">
-                        <label for="sc-channel-link">URL:</label>
-                        <input id="sc-channel-link" name="sc_channel['link']" type="url" value="<?php echo $channel['link'] ?>">
+                        <input id="sc-channel-description" name="sc_channel[description]" type="text" value="<?php echo $channel['description'] ?>">
                     </div>
                     <div class="form-row form-row--submit_buttons">
                         <input name="sc_submit" type="submit" value="Uložit">

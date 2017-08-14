@@ -118,7 +118,6 @@ return [
     'current_url' => %s,
     'channel'     => [
         'title'       => %s,
-        'link'        => %s,
         'description' => %s,
         'language'    => 'cs',
     ],
@@ -137,7 +136,6 @@ PHP;
             empty( $params['sort'] ) ? 'null' : '"' . $params['sort'] . '"',
             '"' . $current_url . '"',
             '"' . $params['channel']['title'] . '"',
-            '"' . $params['channel']['link'] . '"',
             '"' . $params['channel']['description'] . '"'
     );
 
@@ -165,7 +163,7 @@ function process_admin_form() {
     /** @var array $channel Default parametrs for the output RSS channel. */
     $channel    = filter_input( INPUT_POST, 'sc_channel', FILTER_DEFAULT , FILTER_REQUIRE_ARRAY );
 
-    // Zajistíme ať jsou data konzistentní
+    // Shromáždíme parametry
     $params = [
         'category'   => empty( $category ) ? null : $category,
         'price_from' => empty( $price_from ) ? null : $price_from,
@@ -173,14 +171,13 @@ function process_admin_form() {
         'town'       => empty( $town ) ? null : $town,
         'sort'       => empty( $sort ) ? null : $sort,
         'channel'    => [
-            'title'       => empty( $channel['title'] ) ? '' : htmlentities( $channel['title'] ),
-            'link'        => empty( $channel['link'] ) ? '' : $channel['link'],
-            'description' => empty( $channel['description'] ) ? '' : htmlentities( $channel['description'] ),
+            'title'       => htmlentities( $channel['title'] ),
+            'description' => htmlentities( $channel['description'] ),
             'language'    => 'cs',
         ],
     ];
 
-    // Uložíme parametry crawleru
+    // A uložíme je
     set_crawler_config( $params );
 }
 
@@ -200,15 +197,10 @@ function get_channel_params() {
  */
 function get_rss_feed_desc() {
     $channel = get_channel_params();
-    $head = '' .
-            '<title>' . $channel['title'] . '</title>' . PHP_EOL .
-            '<description>' . $channel['description'] . '</description>';
-
-    if( ! empty( $channel['link'] ) ) {
-        $head .= '<link>' . $channel['link'] . '</link>' . PHP_EOL;
-    }
-
-    $head .= '<language>' . $channel['language'] . '</language>' . PHP_EOL;
+    $head = '';
+    $head .= '<title>' . $channel['title'] . '</title>';
+    $head .= '<description>' . $channel['description'] . '</description>';
+    $head .= '<language>' . $channel['language'] . '</language>';
 
     return $head;
 }

@@ -5,7 +5,7 @@
  * Tento soubor se automaticky ukládá po odeslání administračního formuláře,
  * takže není nutnost tento soubor editovat ručně.
  *
- * Vygenerováno: 12.8.2017 17:27
+ * Vygenerováno: 14.8.2017 12:38
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
@@ -19,9 +19,8 @@ return [
     'sort'        => null,
     'current_url' => "/8-dum-byt-zahrada",
     'channel'     => [
-        'title'       => "Zkušební feed",
-        'link'        => "http://localhost:7777/sbazar-crawler.php",
-        'description' => "Popisek zkušebního feedu.",
+        'title'       => "Zku&scaron;ebn&iacute; feed",
+        'description' => "Popisek zku&scaron;ebn&iacute;ho feedu",
         'language'    => 'cs',
     ],
 ];
