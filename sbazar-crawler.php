@@ -45,6 +45,9 @@ defined( 'SC_MAX_PAGES_TO_PARSE' ) || define( 'SC_MAX_PAGES_TO_PARSE', 3 );
 // Vytvářet soubor s chybama při parsování HTML?
 defined( 'SC_ENABLE_PARSER_LOG' ) || define( 'SC_ENABLE_PARSER_LOG', false );
 
+// Prefix URL Sbazaru
+defined( 'SC_SBAZAR_URL_PREFIX' ) || define( 'SC_SBAZAR_URL_PREFIX', 'https://www.sbazar.cz' );
+
 // Ostatní zdrojáky
 require_once( SC_PATH . 'inc/functions.php' );
 

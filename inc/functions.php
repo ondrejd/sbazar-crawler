@@ -582,7 +582,7 @@ class Crawler {
             return;
         }
 
-        $link = 'https://www.sbazar.cz' . $anchors->item( 0 )->getAttribute( 'href' );
+        $link = SC_SBAZAR_URL_PREFIX . $anchors->item( 0 )->getAttribute( 'href' );
 
         $ad_obj = new Ad();
         $ad_obj->setId( $id );
