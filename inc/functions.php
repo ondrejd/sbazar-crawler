@@ -234,19 +234,7 @@ function set_rss_feed( array $ads = [] ) {
 XML;
 
     foreach( $ads as $ad) {
-//<pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
-        $desc = $ad->getTitle() . ' - ' . $ad->getPrice();
-        $item = <<<XML
-
-        <item>
-            <title>{$ad->getTitle()}</title>
-            <description>{$desc}</description>
-            <link>{$ad->getLink()}</link>
-            <guid isPermaLink="true">{$ad->getLink()}</guid>
-            <category>{$ad->getCategory()}</category>
-        </item>
-XML;
-        $rss .= $item;
+        $rss .= $ad->to_rss_string();
     }
 
     $rss .= <<<XML
@@ -288,7 +276,7 @@ class ParserError {
      */
     public function call() {
         $result = null;
-        set_error_handler( [$this, 'onError'] );
+        set_error_handler( [$this, 'on_error'] );
 
         try {
             $result = call_user_func( $this->callback, func_get_arg( 0 ) );
@@ -309,7 +297,7 @@ class ParserError {
      * @param integer $errline
      * @return void
      */
-    public function onError( $errno, $errstr, $errfile, $errline ) {
+    public function on_error( $errno, $errstr, $errfile, $errline ) {
         $this->errors[] = [$errno, $errstr, $errfile, $errline];
     }
 
@@ -345,11 +333,19 @@ class Ad {
     protected $link;
     /** @var string $guid */
     protected $guid;
+    /** @var string $image_alt */
+    protected $image_alt;
+    /** @var string $image_src */
+    protected $image_src;
+    /** @var string $locality_lbl */
+    protected $locality_lbl;
+    /** @var string $locality_url */
+    protected $locality_url;
 
     /**
      * @return integer Vrátí ID inzerátu.
      */
-    public function getId() {
+    public function get_id() {
         return $this->id;
     }
 
@@ -357,14 +353,14 @@ class Ad {
      * @param integer $id ID inzerátu.
      * @return void
      */
-    public function setId( $id ) {
+    public function set_id( $id ) {
         $this->id = $id;
     }
 
     /**
      * @return integer Vrátí cenu inzerátu.
      */
-    public function getPrice() {
+    public function get_price() {
         return $this->price;
     }
 
@@ -372,14 +368,14 @@ class Ad {
      * @param integer $price Cena inzerátu.
      * @return void
      */
-    public function setPrice( $price ) {
+    public function set_price( $price ) {
         $this->price = $price;
     }
 
     /**
      * @return integer Vrátí ID kategorie inzerátu.
      */
-    public function getCategory() {
+    public function get_category() {
         return $this->category;
     }
 
@@ -387,14 +383,14 @@ class Ad {
      * @param integer $category ID kategorie inzerátu.
      * @return void
      */
-    public function setCategory( $category ) {
+    public function set_category( $category ) {
         $this->category = $category;
     }
 
     /**
      * @return string Vrátí název inzerátu.
      */
-    public function getTitle() {
+    public function get_title() {
         return $this->title;
     }
 
@@ -402,14 +398,14 @@ class Ad {
      * @param string $title Název inzerátu.
      * @return void
      */
-    public function setTitle( $title ) {
+    public function set_title( $title ) {
         $this->title = $title;
     }
 
     /**
      * @return string Vrátí odkaz na inzerát.
      */
-    public function getLink() {
+    public function get_link() {
         return $this->link;
     }
 
@@ -417,14 +413,14 @@ class Ad {
      * @param string $link Odkaz na inzerát.
      * @return void
      */
-    public function setLink( $link ) {
+    public function set_link( $link ) {
         $this->link = $link;
     }
 
     /**
      * @return string Vrátí unikátní identifikátor inzerátu.
      */
-    public function getGuid() {
+    public function get_guid() {
         return $this->guid;
     }
 
@@ -432,8 +428,125 @@ class Ad {
      * @param string $guid Unikátní identifikátor inzerátu.
      * @return void
      */
-    public function setGuid( $guid ) {
+    public function set_guid( $guid ) {
         $this->guid = $guid;
+    }
+
+    /**
+     * @return string Vrátí popisek obrázku inzerátu.
+     */
+    public function get_image_alt() {
+        return $this->image_alt;
+    }
+
+    /**
+     * @param string $image_alt Popisek obrázku inzerátu.
+     * @return void
+     */
+    public function set_image_alt( $image_alt ) {
+        $this->image_alt = $image_alt;
+    }
+
+    /**
+     * @return string Vrátí zdroj (URL) obrázku inzerátu.
+     */
+    public function get_image_src() {
+        return $this->image_src;
+    }
+
+    /**
+     * @param string $image_src Zdroj (URL) obrázku inzerátu.
+     * @return void
+     */
+    public function set_image_src( $image_src ) {
+        $this->image_src = $image_src;
+    }
+
+    /**
+     * @return string Vrátí název lokality inzerátu.
+     */
+    public function get_locality_label() {
+        return $this->locality_lbl;
+    }
+
+    /**
+     * @param string $locality_lbl Název lokality inzerátu.
+     * @return void
+     */
+    public function set_locality_label( $locality_lbl ) {
+        $this->locality_lbl = $locality_lbl;
+    }
+
+    /**
+     * @return string Vrátí část URL pro lokalitu inzerátu.
+     */
+    public function get_locality_url() {
+        return $this->locality_url;
+    }
+
+    /**
+     * @param string $locality_url Část URL pro lokalitu inzerátu.
+     * @return void
+     */
+    public function set_locality_url( $locality_url ) {
+        $this->locality_url = $locality_url;
+    }
+
+    /**
+     * @return string Returns {@see AD} as the string with RSS <item> created from it.
+     */
+    public function to_rss_string() {
+        $out = '';
+
+        //<pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
+
+        // Popisek
+        $desc = $this->get_title();
+        if( ! empty( $ad->get_price() ) ) {
+            $desc .= '; Cena: ' . $this->get_price();
+        }
+        if( ! empty( $ad->get_locality_label() ) ) {
+            $desc .= '; Lokalita: ' . $ad->get_locality_label();
+        }
+
+        // Obrázek
+        $src = $ad->get_image_src();
+        $mime = $this->get_img_mime_type( $src );
+
+        // Vytvoříme výstupní XML
+        $out .= '<item>';
+        $out .= '<title>' . $this->get_title() . '</title>';
+        $out .= '<description>' . $desc . '</description>';
+        $out .= '<link>' . $this->get_link() . '</link>';
+        $out .= '<guid isPermaLink="true">' . $this->get_link() . '</guid>';
+        $out .= '<category>' . $this->get_category() . '</category>';
+
+        if( ! empty( $src ) ) {
+            $out .= '<enclosure url="' . $src . '" type="' . $mime . '"/>';
+        }
+
+        $out .= '</item>';
+
+        return $out;
+    }
+
+    /**
+     * @internal Returns MIME type for the image src string.
+     * @param string $img
+     * @return string
+     */
+    private function get_img_mime_type( $img ) {
+        if( strpos( strtolower( $img ), '.jpg') > 0 || strpos( strtolower( $img ), '.jpeg') > 0 ) {
+            return 'image/jpeg';
+        }
+        else if( strpos( strtolower( $img ), '.gif') > 0 ) {
+            return 'image/gif';
+        }
+        else if( strpos( strtolower( $img ), '.png') > 0 ) {
+            return 'image/png';
+        }
+
+        return null;
     }
 }
 
@@ -547,29 +660,104 @@ class Crawler {
     }
 
     /**
+     * @param \DOMElement $span
+     * @return mixed Returns string (ad's title) or NULL.
+     */
+    protected function parse_ad_title( \DOMElement $span ) {
+        // Pozn. kdyby jsme hledali třídu "descText", tak máme celý popis
+        if( strstr( $span->getAttribute( 'class' ), 'title' ) ) {
+            return trim( $span->textContent );
+        }
+        return null;
+    }
+
+    /**
+     * @param \DOMElement $span
+     * @return mixed Returns array (alt and src of the ad's image) or NULL.
+     */
+    protected function parse_ad_image( \DOMElement $span ) {
+        if( ! SC_PARSE_AD_IMAGE ) {
+            return null;
+        }
+
+        if( ! strstr( $span->getAttribute( 'class' ), 'image' ) ) {
+            return null;
+        }
+
+        $img_elms = $span->getElementsByTagName( 'img' );
+        if( $img_elms->length < 1 ) {
+            return null;
+        }
+
+        $img_elm = $img_elms->item( 0 );
+        if( ! ( $img_elm instanceof \DOMElement ) ) {
+            return null;
+        }
+
+        $alt = $img_elm->getAttribute( 'alt' );
+        $src = $img_elm->getAttribute( 'src' );
+
+        if( empty( $src ) ) {
+            return null;
+        }
+
+        return ['src' => $src, 'alt' => $alt];
+    }
+
+    /**
+     * @param \DOMElement $span
+     * @return mixed Returns array (label and URL part of the ad's locality) or NULL.
+     */
+    protected function parse_ad_locality( \DOMElement $span ) {
+        if( ! $span->hasAttribute( 'data-locality-url-name' ) ) {
+            return null;
+        }
+
+        return [
+            'label' => $span->textContent,
+            'url'   => $span->getAttribute( 'data-locality-url-name' ),
+        ];
+    }
+    
+    /**
      * Parsuje jeden div s inzeratem.
      * @param \DOMElement $ad_div
      * @return \sbazar_crawler\Ad|null
-     * @todo Pokud bude třeba obrázek tak viz. {link https://cyber.harvard.edu/rss/rss.html#ltenclosuregtSubelementOfLtitemgt}
      */
     protected function parse_ad( \DOMElement $ad_div ) {
+        // ID inzerátu
         $id = $ad_div->getAttribute( 'id' );
         if( strpos( $id, 'inz-' ) !== 0 ) {
             return;
         }
 
+        // Data z atributu "data-dot-data"
         $data = json_decode( $ad_div->getAttribute( 'data-dot-data' ));
         if( ! is_object( $data ) ) {
             return;
         }
 
-        $title = '';
+        // Název, obrázek lokalita inzerátu
+        $title = null;
+        $image = null;
+        $locality = null;
         $spans = $ad_div->getElementsByTagName( 'span' );
 
         foreach( $spans as $span ) {
-            if( $span->hasAttribute( 'class' ) && strstr( $span->getAttribute( 'class' ), 'title' ) ) {
-                // Pozn. kdyby jsme hledali třídu "descText", tak máme celý popis
-                $title = trim( $span->textContent );
+            if( ! $span->hasAttribute( 'class' ) ) {
+                continue;
+            }
+
+            if( is_null( $title ) ) {
+                $title = $this->parse_ad_title( $span );
+            }
+
+            if( is_null( $image ) ) {
+                $image = $this->parse_ad_image( $span );
+            }
+
+            if( is_null( $locality ) ) {
+                $locality = $this->parse_ad_locality( $span );
             }
         }
 
@@ -577,20 +765,33 @@ class Crawler {
             return;
         }
 
+        // Odkaz na inzerát
         $anchors = $ad_div->getElementsByTagName( 'a' );
         if( $anchors->length != 1 ) {
-            return;
+            return; // Pokud není končíme
+        }
+        else {
+            $link = SC_SBAZAR_URL_PREFIX . $anchors->item( 0 )->getAttribute( 'href' );
         }
 
-        $link = SC_SBAZAR_URL_PREFIX . $anchors->item( 0 )->getAttribute( 'href' );
-
+        // Nová reklama
         $ad_obj = new Ad();
-        $ad_obj->setId( $id );
-        $ad_obj->setCategory( $data->categoryId );
-        $ad_obj->setPrice( $data->price );
-        $ad_obj->setTitle( $title );
-        $ad_obj->setLink( $link );
-        //$ad_obj->setGuid( $guid );
+        $ad_obj->set_id( $id );
+        $ad_obj->set_category( $data->categoryId );
+        $ad_obj->set_price( $data->price );
+        $ad_obj->set_title( $title );
+        $ad_obj->set_link( $link );
+        //$ad_obj->set_guid( $guid );
+
+        if( ! is_null( $image ) ) {
+            $ad_obj->set_image_alt( $image['alt'] );
+            $ad_obj->set_image_src( $image['src'] );
+        }
+
+        if( ! is_null( $locality ) ) {
+            $ad_obj->set_locality_label( $locality['label'] );
+            $ad_obj->set_locality_url( $locality['url'] );
+        }
 
         return $ad_obj;
     }

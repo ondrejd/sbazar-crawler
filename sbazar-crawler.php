@@ -48,6 +48,9 @@ defined( 'SC_ENABLE_PARSER_LOG' ) || define( 'SC_ENABLE_PARSER_LOG', false );
 // Prefix URL Sbazaru
 defined( 'SC_SBAZAR_URL_PREFIX' ) || define( 'SC_SBAZAR_URL_PREFIX', 'https://www.sbazar.cz' );
 
+// Pokud je TRUE, pak jsou parsovány i obrázky inzerátů
+defined( 'SC_PARSE_AD_IMAGE' ) || define( 'SC_PARSE_AD_IMAGE', true );
+
 // Ostatní zdrojáky
 require_once( SC_PATH . 'inc/functions.php' );
 
