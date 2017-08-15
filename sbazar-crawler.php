@@ -36,6 +36,9 @@ defined( 'SC_RSS_FILE' ) || define( 'SC_RSS_FILE', SC_PATH . 'feed.rss' );
 // Aktuálně platné heslo do administrace
 defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 
+// Aktuální URL k feedu.
+defined( 'SC_FEED_SELF_URL' ) || define( 'SC_FEED_SELF_URL', 'http://localhost:7777/sbazar-crawler.php' );
+
 // Maximulní doba pro zpuštění (600 s = 10 min)
 defined( 'SC_MAX_EXEC_TIME' ) || define( 'SC_MAX_EXEC_TIME', 600 );
 

@@ -139,7 +139,7 @@ PHP;
             '"' . $params['channel']['description'] . '"'
     );
 
-    file_put_contents( SC_PATH . 'sbazar-crawler.config.php', $php );
+    file_put_contents( SC_PATH . 'sbazar-crawler.config.php', trim( $php ) );
 }
 
 
@@ -171,8 +171,8 @@ function process_admin_form() {
         'town'       => empty( $town ) ? null : $town,
         'sort'       => empty( $sort ) ? null : $sort,
         'channel'    => [
-            'title'       => htmlentities( $channel['title'] ),
-            'description' => htmlentities( $channel['description'] ),
+            'title'       => $channel['title'],
+            'description' => $channel['description'],
             'language'    => 'cs',
         ],
     ];
@@ -183,24 +183,18 @@ function process_admin_form() {
 
 
 /**
- * Vrátí parametry pro RSS kanál.
- * @return array
- */
-function get_channel_params() {
-    return get_crawler_config()['channel'];
-}
-
-
-/**
  * Vrátí hlavičku k RSS feedu.
  * @return string
  */
 function get_rss_feed_desc() {
-    $channel = get_channel_params();
+    $config = include( 'sbazar-crawler.config.php' );
+    $channel = $config['channel'];
+
     $head = '';
     $head .= '<title>' . $channel['title'] . '</title>';
     $head .= '<description>' . $channel['description'] . '</description>';
     $head .= '<language>' . $channel['language'] . '</language>';
+    $head .= '<link>' . SC_FEED_SELF_URL . '</link>';
 
     return $head;
 }
@@ -218,23 +212,30 @@ function set_rss_feed( array $ads = [] ) {
      * @var string $rss Output RSS document (just plain text).
      */
     $rss = '';
-    $rss .= <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-    <channel>
-{$feed_head}
-XML;
+    $rss .= '<?xml version="1.0" encoding="UTF-8"?>';
+    $rss .= '<rss version="2.0">';
+    $rss .= '<channel>';
+    $rss .= $feed_head;
 
     foreach( $ads as $ad) {
         $rss .= $ad->to_rss_string();
     }
 
-    $rss .= <<<XML
-    </channel>
-</rss>
-XML;
+    $rss .= '</channel>';
+    $rss .= '</rss>';
+
     // Zapíšeme do souboru
     file_put_contents( SC_RSS_FILE, $rss );
+}
+
+
+/**
+ * @internal Escapes string to be XML-safe.
+ * @param string $str
+ * @return string
+ */
+function xml_escape( $str ) {
+    return str_replace( ['&', '<', '>', '\'', '"'], ['&amp;', '&lt;', '&gt;', '&apos;', '&quot;'], $str );
 }
 
 
@@ -327,8 +328,12 @@ class Ad {
     protected $guid;
     /** @var string $image_alt */
     protected $image_alt;
+    /** @var integer $image_length */
+    protected $image_length;
     /** @var string $image_src */
     protected $image_src;
+    /** @var string $image_type */
+    protected $image_type;
     /** @var string $locality_lbl */
     protected $locality_lbl;
     /** @var string $locality_url */
@@ -440,10 +445,32 @@ class Ad {
     }
 
     /**
+     * @return integer Vrátí velikost obrázku inzerátu.
+     */
+    public function get_image_length() {
+        return $this->image_length;
+    }
+
+    /**
      * @return string Vrátí zdroj (URL) obrázku inzerátu.
      */
     public function get_image_src() {
         return $this->image_src;
+    }
+
+    /**
+     * @return string Vrátí typ obrázku inzerátu.
+     */
+    public function get_image_type() {
+        return $this->image_type;
+    }
+
+    /**
+     * @param integer $image_length Velikost obrázku inzerátu.
+     * @return void
+     */
+    public function set_image_length( $image_length ) {
+        $this->image_length = $image_length;
     }
 
     /**
@@ -452,6 +479,14 @@ class Ad {
      */
     public function set_image_src( $image_src ) {
         $this->image_src = $image_src;
+    }
+
+    /**
+     * @param string $image_type Typ obrázku inzerátu.
+     * @return void
+     */
+    public function set_image_type( $image_type ) {
+        $this->image_type = $image_type;
     }
 
     /**
@@ -485,32 +520,35 @@ class Ad {
     }
 
     /**
-     * @return string Returns {@see AD} as the string with RSS <item> created from it.
+     * @return string Vrátí objekt {@see AD} jako řetězec s RSS <item>.
+     * @todo Zahrnout správný <pubDate>!
      */
     public function to_rss_string() {
         $out = '';
 
-        //<pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
-
         // Popisek
         $desc = $this->get_title();
-        if( ! empty( $ad->get_price() ) ) {
+        if( ! empty( $this->get_price() ) ) {
             $desc .= '; Cena: ' . $this->get_price();
         }
-        if( ! empty( $ad->get_locality_label() ) ) {
-            $desc .= '; Lokalita: ' . $ad->get_locality_label();
+        if( ! empty( $this->get_locality_label() ) ) {
+            $desc .= '; Lokalita: ' . $this->get_locality_label();
         }
 
+        // TODO <pubDate>Mon, 30 Jul 2017 09:41:33 +0000</pubDate>
+        $date = date( 'r' );
+
         // Obrázek
-        $src = $ad->get_image_src();
+        $src = $this->get_image_src();
         $mime = $this->get_img_mime_type( $src );
 
         // Vytvoříme výstupní XML
         $out .= '<item>';
-        $out .= '<title>' . $this->get_title() . '</title>';
-        $out .= '<description>' . $desc . '</description>';
+        $out .= '<pubDate>' . $date . '</pubDate>';
+        $out .= '<title>' . xml_escape( $this->get_title() ) . '</title>';
+        $out .= '<description>' . xml_escape( $desc ) . '</description>';
         $out .= '<link>' . $this->get_link() . '</link>';
-        $out .= '<guid isPermaLink="true">' . $this->get_link() . '</guid>';
+        //$out .= '<guid isPermaLink="true">' . $this->get_link() . '</guid>';
         $out .= '<category>' . $this->get_category() . '</category>';
 
         if( ! empty( $src ) ) {
@@ -687,13 +725,20 @@ class Crawler {
         }
 
         $alt = $img_elm->getAttribute( 'alt' );
-        $src = $img_elm->getAttribute( 'src' );
+        $src = 'https:' . $img_elm->getAttribute( 'data-origin' );
+        $img = get_headers( $src, 1 );
+        $ret = [
+            'src'    => $src,
+            'alt'    => trim( $alt ),
+            'type'   => is_array( $img ) ? $img['Content-Type'] : null,
+            'length' => is_array( $img ) ? $img['Content-Length'] : null,
+        ];
 
-        if( empty( $src ) ) {
+        if( empty( $src ) || is_null( $length ) || is_null( $type ) ) {
             return null;
         }
 
-        return ['src' => $src, 'alt' => $alt];
+        return $image;
     }
 
     /**
@@ -778,6 +823,8 @@ class Crawler {
         if( ! is_null( $image ) ) {
             $ad_obj->set_image_alt( $image['alt'] );
             $ad_obj->set_image_src( $image['src'] );
+            $ad_obj->set_image_type( $image['type'] );
+            $ad_obj->set_image_length( $image['length'] );
         }
 
         if( ! is_null( $locality ) ) {
