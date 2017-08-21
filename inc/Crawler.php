@@ -57,6 +57,8 @@ class Crawler {
             $url .= str_pad( $url, 1, '/', STR_PAD_RIGHT ) . $this->page;
         }
 
+        $html = file_get_contents( $url );
+        //file_put_contents( 'page-' . $this->page . '.html', $html );
         return file_get_contents( $url );
     }
 
@@ -76,8 +78,6 @@ class Crawler {
     public function parse() {
         $html = $this->get_html();
         // A vytvoříme z toho DOM dokument
-        //$this->doc = new \DOMDocument();
-        //$this->doc->loadHTML( $html, LIBXML_NOWARNING | LIBXML_ERR_NONE );
         $this->doc = new \DomDocument();
         // Chceme zamezit zbytečným PHP warningům při špatném HTML
         $caller = new ParserError( [$this->doc, 'loadHTML'] );
