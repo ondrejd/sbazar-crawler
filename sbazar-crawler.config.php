@@ -8,6 +8,7 @@
  * Vygenerováno: 14.8.2017 12:38
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
+ * @package sbazar_crawler
  */
 
 return [

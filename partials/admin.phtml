@@ -41,7 +41,7 @@ form label[for="sc-price_to"] { width:auto; }
                         <label for="sc-category">Kategorie:</label>
                         <select id="sc-category" name="sc_category" value="<?php echo $category ?>">
                             <option value=""<?php echo empty( $category ) ? ' selected' : '' ?>>Žádná</option>
-                            <?php foreach( \sbazar_crawler\get_categories() as $cat => $cat_url ) : ?>
+                            <?php foreach( \sbazar_crawler\Utils::get_categories() as $cat => $cat_url ) : ?>
                             <option value="<?php echo $cat_url ?>"<?php echo ( $cat_url == $category ) ? ' selected' : '' ?>><?php echo $cat ?></option>
                             <?php endforeach ?>
                         </select>

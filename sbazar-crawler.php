@@ -20,6 +20,7 @@
  * Spouštěcí cyklus jde samozřejmě případně nastavit i kratší.
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
+ * @package sbazar_crawler
  *
  * @todo Přesunout HTML/XML do /partials/*.phtml|*.pxml
  * @todo Zlepšit kód (včetně komentářů)
@@ -40,10 +41,10 @@ defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 defined( 'SC_FEED_SELF_URL' ) || define( 'SC_FEED_SELF_URL', 'http://localhost:7777/sbazar-crawler.php' );
 
 // Maximulní doba pro zpuštění (600 s = 10 min)
-defined( 'SC_MAX_EXEC_TIME' ) || define( 'SC_MAX_EXEC_TIME', 600 );
+defined( 'SC_MAX_EXEC_TIME' ) || define( 'SC_MAX_EXEC_TIME', 1800 );
 
 // Maximální počet stránek Sbazaru na parsování (spíše pro vývoj)
-defined( 'SC_MAX_PAGES_TO_PARSE' ) || define( 'SC_MAX_PAGES_TO_PARSE', 3 );
+defined( 'SC_MAX_PAGES_TO_PARSE' ) || define( 'SC_MAX_PAGES_TO_PARSE', 999999 );
 
 // Vytvářet soubor s chybama při parsování HTML?
 defined( 'SC_ENABLE_PARSER_LOG' ) || define( 'SC_ENABLE_PARSER_LOG', false );
@@ -55,7 +56,10 @@ defined( 'SC_SBAZAR_URL_PREFIX' ) || define( 'SC_SBAZAR_URL_PREFIX', 'https://ww
 defined( 'SC_PARSE_AD_IMAGE' ) || define( 'SC_PARSE_AD_IMAGE', true );
 
 // Ostatní zdrojáky
-require_once( SC_PATH . 'inc/functions.php' );
+include_once( SC_PATH . 'inc/Ad.php' );
+include_once( SC_PATH . 'inc/Crawler.php' );
+include_once( SC_PATH . 'inc/ParserError.php' );
+include_once( SC_PATH . 'inc/Utils.php' );
 
 // Musíme taky zvýšit časový limit
 ini_set( 'max_execution_time', SC_MAX_EXEC_TIME );
@@ -82,15 +86,15 @@ $admin_pass = filter_input( INPUT_GET, 'admin' );
 if( $is_admin === true && $admin_pass != SC_ADMIN_PASS ) {
     // Vyžádána administrace, ale se špatným heslem
     header( 'Content-Type: text/html;charset=UTF-8 ' );
-    include_tpl( SC_PATH . 'partials/admin-wrong_pass.phtml', [], true );
+    Utils::include_tpl( SC_PATH . 'partials/admin-wrong_pass.phtml', [], true );
     exit();
 }
 if( $is_admin === true ) {
     // Administrace
     // Zpracujeme formulář
-    process_admin_form();
+    Utils::process_admin_form();
     // Připravíme si parametry pro šablonu
-    $params = get_crawler_config();
+    $params = Utils::get_crawler_config();
 
     // Nevím proč, ale po uložení konfiguračního souboru, dochází k chybě,
     // že není vráceno pole, ale boolean, toto je řešení:
@@ -102,7 +106,7 @@ if( $is_admin === true ) {
     
     // Zobrazíme adminstraci
     header( 'Content-Type: text/html;charset=UTF-8 ' );
-    include_tpl( SC_PATH . 'partials/admin.phtml', $params, true );
+    Utils::include_tpl( SC_PATH . 'partials/admin.phtml', $params, true );
     exit();
 }
 elseif( $is_cron_job === true ) {
@@ -112,11 +116,11 @@ elseif( $is_cron_job === true ) {
     echo 'CRON job is executed!' . PHP_EOL;
 
     // Inicializujeme parser
-    $parser = new Crawler( get_crawler_config() );
+    $parser = new Crawler( Utils::get_crawler_config() );
     // A začneme parsovat HTML
     $parser->parse();
     // Nakonec musíme vše uložit jako nový RSS feed
-    set_rss_feed( $parser->get_ads() );
+    Utils::set_rss_feed( $parser->get_ads() );
 
     echo 'CRON job is finished!';
     exit();
@@ -136,7 +140,7 @@ else {
 ?>
 <rss version="2.0">
     <channel>
-<?php echo get_rss_feed_desc() ?>
+<?php echo Utils::get_rss_feed_desc() ?>
     </channel>
 </rss>
 <?php
