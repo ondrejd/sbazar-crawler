@@ -39,7 +39,6 @@ defined( 'SC_ADMIN_PASS' ) || define( 'SC_ADMIN_PASS', 'fuzeWPSPFx3duEt4' );
 
 // Aktuální URL k feedu.
 defined( 'SC_FEED_SELF_URL' ) || define( 'SC_FEED_SELF_URL', 'http://localhost:7777/' );
-//defined( 'SC_FEED_SELF_URL' ) || define( 'SC_FEED_SELF_URL', 'http://83.cz/sbazar-crawler/' );
 
 // Maximulní doba pro zpuštění (600 s = 10 min)
 defined( 'SC_MAX_EXEC_TIME' ) || define( 'SC_MAX_EXEC_TIME', 3200 );
