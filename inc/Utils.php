@@ -44,6 +44,7 @@ class Utils {
             'Služby' => '82-sluzby',
             'Sport' => '27-sport',
             'Starožitnosti, hobby a umění' => '33-starozitnosti-hobby-umeni',
+            'Tablety a čtečky knih' => '815-tablety-ctecky-knih',
             'Zdraví a krása' => '28-zdravi-krasa',
             'Zvířata' => '90-zvirata',
         ];
@@ -65,21 +66,30 @@ class Utils {
      */
     public static function get_current_url( array $params ) {
         $current_url = str_pad( $params['base_url'], 1, '/', STR_PAD_RIGHT );
+        $price_from  = intval( $params['price_from'] );
+        $price_to    = intval( $params['price_from'] );
 
+        // Kategorie
         if( ! empty( $params['category'] ) ) {
-            $current_url = $current_url . $params['category'];
+            $current_url .= $params['category'];
         }
 
-        if( ! empty( $params['price_from'] ) ) {
-            // ...
-        }
-
-        if( ! empty( $params['price_to'] ) ) {
-            // ...
-        }
-
+        // PSC
         if( ! empty( $params['town'] ) ) {
-            // ...
+            $current_url .= '/' . $params['town'];
+        } else {
+            $current_url .= '/cela-cr';
+        }
+
+        // Cena od-do
+        if( $price_from > 0 && $price_to <= 0 ) {// cena-od-5000-kc
+            $current_url .= '/cena-od-' . $price_from . '-kc';
+        }
+        else if( $price_from <= 0 && $price_to > 0 ) {// cena-do-15000-kc
+            $current_url .= '/cena-do-' . $price_to . '-kc';
+        }
+        else if( $price_from > 0 && $price_to > 0) {// cena-od-5000-do-15000-kc
+            $current_url .= '/cena-od-' . $price_from . '-do-' . $price_to . '-kc';
         }
 
         return str_pad( $current_url, 1, '/', STR_PAD_RIGHT );
@@ -120,12 +130,15 @@ return [
     ],
 ];
 PHP;
+        if( empty( $params['base_url'] ) ) {
+            $params['base_url'] = 'https://www.sbazar.cz/';
+        }
 
         $current_url = self::get_current_url( $params );
         $php = sprintf(
                 $tpl,
                 date( 'j.n.Y H:i' ),
-                '"https://www.sbazar.cz/"',
+                '"' . $params['base_url'] . '"',
                 empty( $params['category'] ) ? 'null' : '"' . $params['category'] . '"',
                 empty( $params['price_from'] ) ? 'null' : ( int ) $params['price_from'],
                 empty( $params['price_to'] ) ? 'null' : ( int ) $params['price_to'],

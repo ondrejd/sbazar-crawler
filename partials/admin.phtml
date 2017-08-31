@@ -13,7 +13,7 @@
         <title>Administrace crawlera pro Sbazar</title>
         <style type="text/css">
 html { margin:0; padding:0; font-family:"HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color:#222; -webkit-user-select:none; -ms-user-select:none; -moz-user-select:none; user-select:none; }
-body { margin:0; padding:0; background:0 0; }
+body { margin:0; padding:0 0 4em 0; background:0 0; }
 a { outline:0; text-decoration:none; }
 h1 { font-size:3.2em; line-height:1.45; margin-top:2em; margin-bottom:1em; font-weight:300; text-align:center; }
 h2 { font-size:1.85em; line-height:1.15; margin-top:1em; margin-bottom:0.5em; font-weight:200; }
@@ -22,7 +22,7 @@ code { font-size:105%; }
 .page { margin:0 10em 0 10em; padding:0; width:auto; }
 .form-row { clear:both; padding:.2em 0; width:100%; }
 .form-row--submit_buttons { padding-top:1em; }
-form #sc-price_form, form #sc-price_to, form #sc-town { width:80px; }
+form #sc-price_from, form #sc-price_to, form #sc-town { width:80px; }
 form label { display:inline-block; width:100px; }
 form label[for="sc-price_to"] { width:auto; }
         </style>
@@ -33,10 +33,9 @@ form label[for="sc-price_to"] { width:auto; }
                 <h1>Administrace crawlera pro Sbazar.cz</h1>
             </div>
             <div class="page">
-                <p>Po odeslání formuláře bude výsledný RSS soubor znovu vygenerován.</p>
                 <form class="form" method="POST">
                     <h2>Parametry pro URL</h2>
-                    <p>Do formuláře níže zadajte parametry pro URL na Sbazar, aktuálně použitá URL je <code><?php echo $current_url ?></code>.</p>
+                    <p>Do formuláře níže zadajte parametry pro URL na <b>Sbazar</b>, aktuálně použitá URL je:<br><code><b><?php echo $current_url ?></b></code></p>
                     <div class="form-row">
                         <label for="sc-category">Kategorie:</label>
                         <select id="sc-category" name="sc_category" value="<?php echo $category ?>">
@@ -48,13 +47,13 @@ form label[for="sc-price_to"] { width:auto; }
                     </div>
                     <div class="form-row">
                         <label for="sc-price_from">Cena od:</label>
-                        <input id="sc-price_form" name="sc_price_form" type="number" min="0" disabled>
+                        <input id="sc-price_from" name="sc_price_from" type="number" min="0" value="<?php echo $price_from ?>">
                         <label for="sc-price_to"> do: </label>
-                        <input id="sc-price_to" name="sc_price_to" type="number" min="1" disabled>
+                        <input id="sc-price_to" name="sc_price_to" type="number" min="1" value="<?php echo $price_to ?>">
                     </div>
                     <div class="form-row">
                         <label for="sc-town">PSČ:</label>
-                        <input id="sc-town" name="sc_town" type="text" value="<?php echo $town ?>" disabled>
+                        <input id="sc-town" name="sc_town" type="text" value="<?php echo $town ?>">
                     </div>
                     <h2>Parametry pro feed</h2>
                     <p>Do tohoto formuláře zadejte parametry použité pro popis celého výsledného feedu. Nadpis a popisek jsou povinné, URL je nepovinné.</p>
