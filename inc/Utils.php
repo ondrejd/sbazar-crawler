@@ -50,12 +50,11 @@ class Utils {
     }
 
     /**
-     * Vrátí pole s konfigurací pro Sbazar crawler. Načítá se ze souboru 
-     * <code>sbazar-crawler.config.php</code>.
+     * Vrátí pole s konfigurací pro Sbazar crawler. Načítá se ze souboru <code>config.php</code>.
      * @return void
      */
     public static function get_crawler_config() {
-        return require_once( SC_PATH . 'sbazar-crawler.config.php' );
+        return require_once( SC_PATH . 'config.php' );
     }
 
     /**
@@ -87,8 +86,7 @@ class Utils {
     }
 
     /**
-     * Vrátí pole s konfigurací pro Sbazar crawler. Načítá se ze souboru 
-     * <code>sbazar-crawler.config.php</code>.
+     * Vrátí pole s konfigurací pro Sbazar crawler. Načítá se ze souboru <code>config.php</code>.
      * @param array $params
      * @return void
      */
@@ -138,12 +136,12 @@ PHP;
                 '"' . $params['channel']['description'] . '"'
         );
 
-        file_put_contents( SC_PATH . 'sbazar-crawler.config.php', trim( $php ) );
+        file_put_contents( SC_PATH . 'config.php', trim( $php ) );
     }
 
     /**
      * Zpracuje administrační formulář - pokud byl odeslán uloží hodnoty
-     * do souboru <code>sbazar-crawler.config.php</code>.
+     * do souboru <code>config.php</code>.
      * @return void
      */
     public static function process_admin_form() {
@@ -184,7 +182,7 @@ PHP;
      * @return string
      */
     public static function get_rss_feed_desc() {
-        $config = include( 'sbazar-crawler.config.php' );
+        $config = include( 'config.php' );
         $channel = $config['channel'];
 
         $head = '';
